@@ -1,0 +1,10 @@
+apiVersion: 1
+
+providers:
+  - name: 'MetricsDashboards'
+    folder: 'Metrics' # an empty string for folder name will put dashboards inside the General group in Grafana
+    type: file
+    editable: true
+    updateIntervalSeconds: 10
+    options:
+      path: /etc/grafana/dashboards/metrics

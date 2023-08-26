@@ -1,0 +1,20 @@
+apiVersion: 1
+
+datasources:
+  - name: Loki
+    type: loki
+    uid: loki
+    access: proxy
+    orgId: 1
+    url: http://loki:3100
+    basicAuth: false
+    isDefault: true
+    version: 1
+    editable: false
+    apiVersion: 1
+    jsonData:
+      derivedFields:
+        - datasourceUid: tempo
+          name: TraceId
+          matcherRegex: \"(?:traceId|TraceId)\":(?:\"([^\"\"]+)\"|\[[^[]+]) # https://stackoverflow.com/a/68349881/7644876
+          url: $${__value.raw}

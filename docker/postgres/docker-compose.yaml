@@ -1,0 +1,28 @@
+services:
+
+  postgres-jobs:
+    image: postgres:15-alpine
+    hostname: postgres
+    ports:
+      - "15432:5432"
+    environment:
+      - POSTGRES_USER=root
+      - POSTGRES_PASSWORD=password
+      - POSTGRES_DB=quartz
+      - POSTGRES_ADDITIONAL_DATABASES= # leave empty if no additional databases are needed
+    healthcheck:
+      test: pg_isready -U "$$POSTGRES_USER" -d "$$POSTGRES_DB"
+      interval: 10s
+      timeout: 2s
+      retries: 10
+    volumes:
+      - ./initdb:/docker-entrypoint-initdb.d/
+      - postgres_jobs_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_jobs_data:
+
+networks:
+  default:
+    name: local-shared
+    external: true

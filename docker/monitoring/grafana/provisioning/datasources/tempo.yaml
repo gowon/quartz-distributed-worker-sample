@@ -1,0 +1,35 @@
+apiVersion: 1
+
+datasources:
+  - name: Tempo
+    type: tempo
+    uid: tempo
+    access: proxy
+    orgId: 1
+    url: http://tempo:3200
+    basicAuth: false
+    isDefault: false
+    version: 1
+    editable: false
+    apiVersion: 1
+    jsonData:
+      httpMethod: GET
+      serviceMap:
+        datasourceUid: prometheus
+      # https://grafana.com/docs/grafana/latest/datasources/tempo/#provision-the-data-source
+      # https://github.com/grafana/grafana/issues/64659#issuecomment-1471877100
+      tracesToLogsV2:
+        datasourceUid: loki
+        spanStartTimeShift: '-15m'
+        spanEndTimeShift: '15m'
+        # tags: ['job', 'instance', 'pod', 'namespace']
+        tags: [{ key: 'service.name', value: 'MachineName' }] 
+        mappedTags: [{ key: 'service.name', value: 'MachineName' }]
+        mapTagNamesEnabled: true
+        
+        filterByTraceID: false
+        filterBySpanID: false
+        customQuery: true
+        query: '{$${__tags}} |="$${__trace.traceId}" | json'
+      lokiSearch:
+        datasourceUid: loki

@@ -1,0 +1,15 @@
+{
+  "$schema": "https://json.schemastore.org/commands.json",
+  "commands": {
+    "startup-dev-dependencies": {
+      "fileName": "dotnet.exe",
+      "workingDirectory": ".",
+      "arguments": "run --project ../../build/build.csproj -c Release -- dev-dependencies --working-dir ../.."
+    },
+    "teardown-dev-dependencies": {
+      "fileName": "dotnet.exe",
+      "workingDirectory": ".",
+      "arguments": "run --project ../../build/build.csproj -c Release -- dev-dependencies --teardown --working-dir ../.."
+    }
+  }
+}
