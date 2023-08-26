@@ -1,0 +1,5 @@
+{
+  "ConnectionStrings": {
+    "QuartzDbContext": "Host=postgres;Port=5432;Database=quartz;Username=root;Password=password;"
+  }
+}

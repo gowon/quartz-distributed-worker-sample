@@ -1,9 +1,8 @@
-﻿namespace QuartzNode;
+﻿namespace QuartzNode.Extensions;
 
 using Core.Quartz.EFCore;
-using Extensions.Hosting.AsyncInitialization;
+using global::Extensions.Hosting.AsyncInitialization;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 public class QuartzJobStoreInitializer : IAsyncInitializer
 {
