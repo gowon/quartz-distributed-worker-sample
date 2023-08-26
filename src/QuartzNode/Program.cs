@@ -6,6 +6,7 @@ using CrystalQuartz.AspNetCore;
 using Extensions;
 using global::Extensions.Options.AutoBinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.FeatureManagement;
 using Quartz;
 using Serilog;
 using Serilog.Exceptions;
@@ -44,13 +45,18 @@ public class Program
                 options.ActivityTrackingOptions = ActivityTrackingOptions.TraceId | ActivityTrackingOptions.SpanId |
                                                   ActivityTrackingOptions.ParentId;
             }))
-            .UseSerilog()
             .UseSerilog((context, _, config) => config.ReadFrom.Configuration(context.Configuration))
             .ConfigureWebHostDefaults(webBuilder =>
             {
                 webBuilder
                     .ConfigureServices((context, services) =>
                     {
+                        // generate Feature Manager to control injection, this is not a built-in feature
+                        // ref: https://github.com/microsoft/FeatureManagement-Dotnet/issues/39
+                        //var featureManager = context.Configuration.GenerateFeatureManager();
+
+                        services.AddFeatureManagement();
+
                         services.AddDbContext<QuartzDbContext>(optionsBuilder =>
                         {
                             optionsBuilder.UseNpgsql(
@@ -78,27 +84,35 @@ public class Program
 
                         services.AddAuthorization();
                     })
-                    .Configure(app =>
+                    .Configure((context, app) =>
                     {
                         app.UseHttpsRedirection();
 
                         app.UseAuthorization();
 
-                        app.UseCrystalQuartz(() =>
-                            app.ApplicationServices.GetRequiredService<ISchedulerFactory>().GetScheduler());
+                        app.UseForFeature(FeatureFlags.HostMode, builder =>
+                        {
+                            builder.UseCrystalQuartz(() =>
+                                builder.ApplicationServices.GetRequiredService<ISchedulerFactory>().GetScheduler());
+                        });
 
                         app.UseRouting();
 
                         app.UseEndpoints(endpoints =>
                         {
+                            // todo: replace with HealthCheck endpoint
                             endpoints.MapGet("/", () => Results.Ok(Environment.MachineName));
 
-                            endpoints.MapGet("/config", async context =>
+                            if (!context.HostingEnvironment.IsProduction())
                             {
-                                var configuration =
-                                    context.RequestServices.GetRequiredService<IConfiguration>() as IConfigurationRoot;
-                                await context.Response.WriteAsync(configuration!.GetDebugView());
-                            });
+                                endpoints.MapGet("/config", async httpContext =>
+                                {
+                                    var configuration =
+                                        httpContext.RequestServices.GetRequiredService<IConfiguration>() as
+                                            IConfigurationRoot;
+                                    await httpContext.Response.WriteAsync(configuration!.GetDebugView());
+                                });
+                            }
                         });
                     });
             });

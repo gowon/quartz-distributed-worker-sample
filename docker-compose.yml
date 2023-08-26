@@ -1,0 +1,11 @@
+services:
+  quartznode:
+    image: ${DOCKER_REGISTRY-}quartznode
+    build:
+      context: .
+      dockerfile: src/QuartzNode/Dockerfile
+
+networks:
+  default:
+    name: local-shared
+    external: true

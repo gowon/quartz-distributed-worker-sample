@@ -7,6 +7,7 @@
     <UserSecretsId>7a2ea898-3f27-4549-9294-d2f8d2fcdf1b</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
     <DockerfileContext>..\..</DockerfileContext>
+    <DockerComposeProjectPath>..\..\docker-compose.dcproj</DockerComposeProjectPath>
   </PropertyGroup>
 
   <ItemGroup>
@@ -14,6 +15,7 @@
     <PackageReference Include="Extensions.Hosting.AsyncInitialization" Version="2.0.0" />
     <PackageReference Include="Extensions.Options.AutoBinder" Version="1.1.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Relational" Version="7.0.10" />
+    <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.6.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
     <PackageReference Include="Quartz" Version="3.7.0" />

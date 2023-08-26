@@ -1,5 +1,25 @@
 {
   "ConnectionStrings": {
     "QuartzDbContext": "Host=postgres;Port=5432;Database=quartz;Username=root;Password=password;"
+  },
+  "Serilog": {
+    "Using": [ "Serilog.Sinks.Console", "Serilog.Sinks.Debug", "Serilog.Enrichers.Span", "Serilog.Exceptions" ],
+    "MinimumLevel": {
+      "Default": "Debug",
+      "Override": {
+        "Microsoft": "Warning",
+        "Microsoft.Hosting.Lifetime": "Information"
+      }
+    },
+    "WriteTo": [
+      {
+        "Name": "Console",
+        "Args": {
+          "theme": "Serilog.Sinks.SystemConsole.Themes.AnsiConsoleTheme::Code, Serilog.Sinks.Console",
+          "outputTemplate": "[{MachineName} {Level:u3}] {Message:lj} <s:{SourceContext}>{NewLine}{Exception}"
+        }
+      }
+    ],
+    "Enrich": [ "WithExceptionDetails", "WithMachineName", "WithSpan" ]
   }
 }
