@@ -1,11 +1,12 @@
 ﻿namespace Core.Quartz.Jobs;
 
-using System.ComponentModel;
 using System.Security.Cryptography;
+using Extensions;
 using global::Quartz;
 using Microsoft.Extensions.Logging;
 
-[Description("Timer Hello World")]
+[QuartzJob("timed-hello-world", "samples", "A 'Hello World' job with configurable time delay.")]
+[QuartzJobData("delay-ms", "")]
 public class TimedHelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("timed-hello-world", "samples");
@@ -19,7 +20,7 @@ public class TimedHelloWorldJob : IJob
 
     public async Task Execute(IJobExecutionContext context)
     {
-        if (!context.MergedJobDataMap.TryGetIntValue("delay-ms", out var delay))
+        if (!context.MergedJobDataMap.TryGetIntValue("delay-ms", out var delay) || delay == default)
         {
             delay = RandomNumberGenerator.GetInt32(100, 1000);
         }

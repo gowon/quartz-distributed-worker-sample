@@ -2,9 +2,13 @@ namespace QuartzNode;
 
 using Core.Quartz.EFCore;
 using Core.Quartz.Jobs;
+using Core.Quartz.Jobs.Extensions;
 using CrystalQuartz.AspNetCore;
 using Extensions;
 using global::Extensions.Options.AutoBinder;
+using HealthChecks.ApplicationStatus.DependencyInjection;
+using HealthChecks.UI.Client;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using Quartz;
@@ -57,13 +61,17 @@ public class Program
 
                         services.AddFeatureManagement();
 
+                        services.AddHealthChecks()
+                            .AddApplicationStatus()
+                            .AddDbContextCheck<QuartzDbContext>();
+
                         services.AddDbContext<QuartzDbContext>(optionsBuilder =>
                         {
                             optionsBuilder.UseNpgsql(
                                 context.Configuration.GetConnectionString(nameof(QuartzDbContext)));
                         });
 
-                        services.AddAsyncInitializer<QuartzJobStoreInitializer>();
+                        services.AddAsyncInitializer<DbContextInitializer<QuartzDbContext>>();
 
                         services.AddOptions<QuartzOptions>()
                             .AutoBind()
@@ -75,9 +83,7 @@ public class Program
 
                         services.AddQuartz(config =>
                         {
-                            config.AddJob<HelloWorldJob>(HelloWorldJob.Key, job => job.StoreDurably());
-                            config.AddJob<TimedHelloWorldJob>(TimedHelloWorldJob.Key, job => job.StoreDurably());
-                            config.AddJob<NamedHelloWorldJob>(NamedHelloWorldJob.Key, job => job.StoreDurably());
+                            config.AddValidatorsFromAssemblyContaining<HelloWorldJob>();
                         });
 
                         services.AddQuartzHostedService(options => { options.WaitForJobsToComplete = true; });
@@ -100,8 +106,13 @@ public class Program
 
                         app.UseEndpoints(endpoints =>
                         {
-                            // todo: replace with HealthCheck endpoint
-                            endpoints.MapGet("/", () => Results.Ok(Environment.MachineName));
+                            endpoints.MapGet("/", async http => http.Response.Redirect("/health"));
+
+                            endpoints.MapHealthChecks("/health", new HealthCheckOptions
+                            {
+                                Predicate = _ => true,
+                                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
+                            });
 
                             if (!context.HostingEnvironment.IsProduction())
                             {

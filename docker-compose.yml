@@ -4,6 +4,29 @@ services:
     build:
       context: .
       dockerfile: src/QuartzNode/Dockerfile
+    environment:
+      - Quartz__quartz___threadPool___maxConcurrency=0
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost/health || exit 1
+      interval: 5s
+      retries: 3
+      timeout: 5s
+
+  worker:
+    build:
+      context: .
+      dockerfile: src/QuartzNode/Dockerfile
+    deploy:
+      replicas: 1
+    environment:
+      - FeatureManagement__HostMode=false
+    healthcheck:
+      test: wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost/health || exit 1
+      interval: 5s
+      retries: 3
+      timeout: 5s
+    depends_on:
+      - quartznode
 
 networks:
   default:

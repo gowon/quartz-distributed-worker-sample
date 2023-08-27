@@ -1,8 +1,11 @@
 ﻿namespace Core.Quartz.Jobs;
 
+using Extensions;
 using global::Quartz;
 using Microsoft.Extensions.Logging;
 
+[QuartzJob("named-hello-world", "samples", "A 'Hello World' job with an configurable name.")]
+[QuartzJobData("name", "")]
 public class NamedHelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("named-hello-world", "samples");
@@ -16,7 +19,7 @@ public class NamedHelloWorldJob : IJob
 
     public Task Execute(IJobExecutionContext context)
     {
-        if (context.MergedJobDataMap.TryGetValue("name", out var name))
+        if (context.MergedJobDataMap.TryGetValue("name", out var name) && !string.IsNullOrWhiteSpace(name.ToString()))
         {
             _logger.LogInformation("Hello, {Name}!", name);
         }

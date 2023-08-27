@@ -1,8 +1,10 @@
 ﻿namespace Core.Quartz.Jobs;
 
+using Extensions;
 using global::Quartz;
 using Microsoft.Extensions.Logging;
 
+[QuartzJob("hello-world", "samples", "A simple 'Hello World' job.")]
 public class HelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("hello-world", "samples");

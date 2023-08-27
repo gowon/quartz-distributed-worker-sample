@@ -1,17 +1,17 @@
 ﻿namespace QuartzNode.Extensions;
 
-using Core.Quartz.EFCore;
 using global::Extensions.Hosting.AsyncInitialization;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 
-public class QuartzJobStoreInitializer : IAsyncInitializer
+public class DbContextInitializer<TContext> : IAsyncInitializer
+    where TContext : DbContext
 {
-    private readonly QuartzDbContext _context;
+    private readonly TContext _context;
     private readonly IFeatureManager _featureManager;
-    private readonly ILogger<QuartzJobStoreInitializer> _logger;
+    private readonly ILogger<DbContextInitializer<TContext>> _logger;
 
-    public QuartzJobStoreInitializer(QuartzDbContext context, ILogger<QuartzJobStoreInitializer> logger,
+    public DbContextInitializer(TContext context, ILogger<DbContextInitializer<TContext>> logger,
         IFeatureManager featureManager)
     {
         _context = context;

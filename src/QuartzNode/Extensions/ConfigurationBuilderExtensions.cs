@@ -21,7 +21,7 @@ public static class ConfigurationBuilderExtensions
         }
 
         builder.AddUserSecrets(Assembly.GetCallingAssembly())
-            .AddEnvironmentVariables()
+            .AddCustomEnvironmentVariables()
             .AddCommandLine(args);
 
         return builder;
