@@ -1,3 +1,10 @@
 {
-	
+  "FeatureManagement": {
+    "HealthChecksMetrics": true,
+    "OpenTelemetryTracing": true,
+    "PrometheusMetrics": true
+  },
+  "OtlpExporter": {
+    "Endpoint": "http://tempo:4317"
+  }
 }

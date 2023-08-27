@@ -21,6 +21,12 @@
     <PackageReference Include="Microsoft.FeatureManagement.AspNetCore" Version="2.6.1" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="7.0.4" />
+    <PackageReference Include="OpenTelemetry" Version="1.5.1" />
+    <PackageReference Include="OpenTelemetry.Exporter.OpenTelemetryProtocol" Version="1.5.1" />
+    <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.5.1" />
+    <PackageReference Include="OpenTelemetry.Instrumentation.Quartz" Version="1.0.0-alpha.3" />
+    <PackageReference Include="prometheus-net.AspNetCore" Version="8.0.0" />
+    <PackageReference Include="prometheus-net.AspNetCore.HealthChecks" Version="8.0.0" />
     <PackageReference Include="Quartz" Version="3.7.0" />
     <PackageReference Include="Quartz.AspNetCore" Version="3.7.0" />
     <PackageReference Include="Quartz.Serialization.Json" Version="3.7.0" />

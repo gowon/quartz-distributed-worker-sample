@@ -11,6 +11,10 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
+using OpenTelemetry.Exporter;
+using OpenTelemetry.Resources;
+using OpenTelemetry.Trace;
+using Prometheus;
 using Quartz;
 using Serilog;
 using Serilog.Exceptions;
@@ -57,13 +61,18 @@ public class Program
                     {
                         // generate Feature Manager to control injection, this is not a built-in feature
                         // ref: https://github.com/microsoft/FeatureManagement-Dotnet/issues/39
-                        //var featureManager = context.Configuration.GenerateFeatureManager();
+                        var featureManager = context.Configuration.GenerateFeatureManager();
 
                         services.AddFeatureManagement();
 
-                        services.AddHealthChecks()
+                        var healthChecksBuilder = services.AddHealthChecks()
                             .AddApplicationStatus()
                             .AddDbContextCheck<QuartzDbContext>();
+
+                        if (featureManager.IsEnabled(FeatureFlags.HealthChecksMetrics))
+                        {
+                            healthChecksBuilder.ForwardToPrometheus();
+                        }
 
                         services.AddDbContext<QuartzDbContext>(optionsBuilder =>
                         {
@@ -83,15 +92,34 @@ public class Program
 
                         services.AddQuartz(config =>
                         {
-                            config.AddValidatorsFromAssemblyContaining<HelloWorldJob>();
+                            if (featureManager.IsEnabled(FeatureFlags.HostMode))
+                            {
+                                config.UseDefaultThreadPool(0);
+                                config.AddJobsFromAssemblyContaining<HelloWorldJob>();
+                            }
                         });
 
                         services.AddQuartzHostedService(options => { options.WaitForJobsToComplete = true; });
+
+                        if (featureManager.IsEnabled(FeatureFlags.OpenTelemetryTracing))
+                        {
+                            services.AddOptions<OtlpExporterOptions>().AutoBind();
+
+                            var d = services.AddOpenTelemetry()
+                                .WithTracing(builder => builder
+                                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
+                                        .AddService(Environment.MachineName))
+                                    .AddQuartzInstrumentation()
+                                    .AddOtlpExporter());
+                        }
+
 
                         services.AddAuthorization();
                     })
                     .Configure((context, app) =>
                     {
+                        var featureManager = app.ApplicationServices.GetRequiredService<IFeatureManager>();
+
                         app.UseHttpsRedirection();
 
                         app.UseAuthorization();
@@ -103,6 +131,8 @@ public class Program
                         });
 
                         app.UseRouting();
+
+                        app.UseForFeature(FeatureFlags.PrometheusMetrics, builder => builder.UseHttpMetrics());
 
                         app.UseEndpoints(endpoints =>
                         {
@@ -123,6 +153,11 @@ public class Program
                                             IConfigurationRoot;
                                     await httpContext.Response.WriteAsync(configuration!.GetDebugView());
                                 });
+                            }
+
+                            if (featureManager.IsEnabled(FeatureFlags.PrometheusMetrics))
+                            {
+                                endpoints.MapMetrics();
                             }
                         });
                     });

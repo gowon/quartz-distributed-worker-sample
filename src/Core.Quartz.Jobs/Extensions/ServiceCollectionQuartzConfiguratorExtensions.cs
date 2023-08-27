@@ -5,13 +5,13 @@ using global::Quartz;
 
 public static class ServiceCollectionQuartzConfiguratorExtensions
 {
-    public static IServiceCollectionQuartzConfigurator AddValidatorsFromAssemblyContaining(
+    public static IServiceCollectionQuartzConfigurator AddJobsFromAssemblyContaining(
         this IServiceCollectionQuartzConfigurator services, Type type)
     {
         return services.AddJobsFromAssembly(type.Assembly);
     }
 
-    public static IServiceCollectionQuartzConfigurator AddValidatorsFromAssemblyContaining<T>(
+    public static IServiceCollectionQuartzConfigurator AddJobsFromAssemblyContaining<T>(
         this IServiceCollectionQuartzConfigurator services)
     {
         return services.AddJobsFromAssembly(typeof(T).Assembly);
