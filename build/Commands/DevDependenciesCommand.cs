@@ -22,7 +22,8 @@ public sealed class DevDependenciesCommand : Command
     public readonly Option<Dictionary<string, string>> ServicesOption = new(new[] { "--services", "-s" },
         () => new Dictionary<string, string>
         {
-            { "postgres-jobs", "postgres" }
+            { "postgres-jobs", "postgres" },
+            { "grafana-jobs", "monitoring" }
         },
         "Required docker resources for local development");
 

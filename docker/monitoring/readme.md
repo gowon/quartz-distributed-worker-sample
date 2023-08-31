@@ -31,3 +31,5 @@ docker-compose down -v
 ## References
 
 - <https://stackoverflow.com/a/71383328/7644876>
+- <https://github.com/prometheus/prometheus/issues/8185#issuecomment-956581270>
+- <https://docs.victoriametrics.com/sd_configs.html#docker_sd_configs>

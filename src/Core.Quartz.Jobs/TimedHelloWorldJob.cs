@@ -5,8 +5,7 @@ using Extensions;
 using global::Quartz;
 using Microsoft.Extensions.Logging;
 
-[QuartzJob("timed-hello-world", "samples", "A 'Hello World' job with configurable time delay.")]
-[QuartzJobData("delay-ms", "")]
+[QuartzJobProvider(nameof(RegisterJob))]
 public class TimedHelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("timed-hello-world", "samples");
@@ -25,7 +24,18 @@ public class TimedHelloWorldJob : IJob
             delay = RandomNumberGenerator.GetInt32(100, 1000);
         }
 
-        await Task.Delay(delay);
+        await Task.Delay(delay, context.CancellationToken);
         _logger.LogInformation("I waited {DelayMs}ms to say Hello world!", delay);
+    }
+
+    public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)
+    {
+        configurator.AddJob<TimedHelloWorldJob>(Key,jobConfigurator =>
+        {
+            jobConfigurator
+                .WithDescription("A 'Hello World' job with configurable time delay.")
+                .UsingJobData("delay-ms", "0")
+                .StoreDurably();
+        });
     }
 }

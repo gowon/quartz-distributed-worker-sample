@@ -3,7 +3,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Design;
 
-public class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<QuartzDbContext>
+internal class DesignTimeDbContextFactory : IDesignTimeDbContextFactory<QuartzDbContext>
 {
     public QuartzDbContext CreateDbContext(string[] args)
     {

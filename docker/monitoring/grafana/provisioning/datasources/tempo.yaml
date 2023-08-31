@@ -22,11 +22,7 @@ datasources:
         datasourceUid: loki
         spanStartTimeShift: '-15m'
         spanEndTimeShift: '15m'
-        # tags: ['job', 'instance', 'pod', 'namespace']
         tags: [{ key: 'service.name', value: 'MachineName' }] 
-        mappedTags: [{ key: 'service.name', value: 'MachineName' }]
-        mapTagNamesEnabled: true
-        
         filterByTraceID: false
         filterBySpanID: false
         customQuery: true

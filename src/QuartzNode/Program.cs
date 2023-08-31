@@ -12,6 +12,7 @@ using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using OpenTelemetry.Exporter;
+using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;
@@ -31,7 +32,14 @@ public class Program
         try
         {
             var host = CreateHostBuilder(args).Build();
-            await host.InitAsync();
+
+            var featureManager = host.Services.GetRequiredService<IFeatureManager>();
+            if (await featureManager.IsEnabledAsync(FeatureFlags.OrchestratorMode))
+            {
+                Log.ForContext<Program>().Information("Node running in Orchestrator Mode.");
+                await host.InitAsync();
+            }
+
             await host.RunAsync();
         }
         catch (Exception exception)
@@ -67,7 +75,7 @@ public class Program
 
                         var healthChecksBuilder = services.AddHealthChecks()
                             .AddApplicationStatus()
-                            .AddDbContextCheck<QuartzDbContext>();
+                            .AddCheck<QuartzHealthCheck>("quartz");
 
                         if (featureManager.IsEnabled(FeatureFlags.HealthChecksMetrics))
                         {
@@ -89,13 +97,16 @@ public class Program
                                 options.Scheduling.IgnoreDuplicates = true;
                                 options.Scheduling.OverWriteExistingData = true;
                             });
-
+                        services.AddSingleton<SchedulerMetricsListener>();
                         services.AddQuartz(config =>
                         {
-                            if (featureManager.IsEnabled(FeatureFlags.HostMode))
+                            config.AddSchedulerListener<SchedulerMetricsListener>();
+
+                            if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
                             {
+                                // instance should not perform work while in orchestrator mode
                                 config.UseDefaultThreadPool(0);
-                                config.AddJobsFromAssemblyContaining<HelloWorldJob>();
+                                config.RegisterJobsFromAssemblyContaining<HelloWorldJob>();
                             }
                         });
 
@@ -105,14 +116,16 @@ public class Program
                         {
                             services.AddOptions<OtlpExporterOptions>().AutoBind();
 
-                            var d = services.AddOpenTelemetry()
+                            services.AddOpenTelemetry()
+                                .WithMetrics(builder => builder
+                                    .AddRuntimeInstrumentation()
+                                    .AddMeter(QuartzNodeMetrics.Default.Name))
                                 .WithTracing(builder => builder
                                     .SetResourceBuilder(ResourceBuilder.CreateDefault()
                                         .AddService(Environment.MachineName))
                                     .AddQuartzInstrumentation()
                                     .AddOtlpExporter());
                         }
-
 
                         services.AddAuthorization();
                     })
@@ -124,7 +137,7 @@ public class Program
 
                         app.UseAuthorization();
 
-                        app.UseForFeature(FeatureFlags.HostMode, builder =>
+                        app.UseForFeature(FeatureFlags.OrchestratorMode, builder =>
                         {
                             builder.UseCrystalQuartz(() =>
                                 builder.ApplicationServices.GetRequiredService<ISchedulerFactory>().GetScheduler());
@@ -138,14 +151,15 @@ public class Program
                         {
                             endpoints.MapGet("/", async http => http.Response.Redirect("/health"));
 
-                            endpoints.MapHealthChecks("/health", new HealthCheckOptions
+                            var healthCheckOptions = new HealthCheckOptions
                             {
-                                Predicate = _ => true,
-                                ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse
-                            });
+                                Predicate = _ => true
+                            };
 
                             if (!context.HostingEnvironment.IsProduction())
                             {
+                                healthCheckOptions.ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse;
+
                                 endpoints.MapGet("/config", async httpContext =>
                                 {
                                     var configuration =
@@ -154,6 +168,8 @@ public class Program
                                     await httpContext.Response.WriteAsync(configuration!.GetDebugView());
                                 });
                             }
+
+                            endpoints.MapHealthChecks("/health", healthCheckOptions);
 
                             if (featureManager.IsEnabled(FeatureFlags.PrometheusMetrics))
                             {

@@ -23,5 +23,5 @@ public static class FeatureFlags
     /// <summary>
     /// When enabled, will set the node to run in Host Mode, as well as expose the CrystalQuartz UI on the <c>/quartz</c> endpoint.
     /// </summary>
-    public const string HostMode = nameof(HostMode);
+    public const string OrchestratorMode = nameof(OrchestratorMode);
 }

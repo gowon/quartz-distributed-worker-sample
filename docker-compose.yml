@@ -4,8 +4,9 @@ services:
     build:
       context: .
       dockerfile: src/QuartzNode/Dockerfile
+    hostname: orchestrator
     environment:
-      - FeatureManagement__HostMode=true
+      - FeatureManagement__OrchestratorMode=true
     healthcheck:
       test: wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost/health || exit 1
       start_period: 5s
@@ -17,6 +18,8 @@ services:
     build:
       context: .
       dockerfile: src/QuartzNode/Dockerfile
+    labels:
+      - "com.quartznode.role=worker"
     deploy:
       replicas: 1
     healthcheck:

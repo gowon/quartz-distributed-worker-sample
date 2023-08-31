@@ -4,8 +4,7 @@ using Extensions;
 using global::Quartz;
 using Microsoft.Extensions.Logging;
 
-[QuartzJob("named-hello-world", "samples", "A 'Hello World' job with an configurable name.")]
-[QuartzJobData("name", "")]
+[QuartzJobProvider(nameof(RegisterJob))]
 public class NamedHelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("named-hello-world", "samples");
@@ -29,5 +28,16 @@ public class NamedHelloWorldJob : IJob
         }
 
         return Task.CompletedTask;
+    }
+
+    public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)
+    {
+        configurator.AddJob<NamedHelloWorldJob>(Key,jobConfigurator =>
+        {
+            jobConfigurator
+                .WithDescription("A 'Hello World' job with an configurable name.")
+                .UsingJobData("name", string.Empty)
+                .StoreDurably();
+        });
     }
 }
