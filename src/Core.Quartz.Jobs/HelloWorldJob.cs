@@ -24,7 +24,7 @@ public class HelloWorldJob : IJob
 
     public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)
     {
-        configurator.AddJob<HelloWorldJob>(Key,jobConfigurator =>
+        configurator.AddJob<HelloWorldJob>(Key, jobConfigurator =>
         {
             jobConfigurator
                 .WithDescription("A simple 'Hello World' job.")

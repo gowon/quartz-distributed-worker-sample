@@ -1,0 +1,24 @@
+services:
+
+  rabbitmq-jobs:
+    image: rabbitmq:3-management-alpine
+    hostname: rabbitmq
+    environment:
+      - RABBITMQ_DEFAULT_USER=root
+      - RABBITMQ_DEFAULT_PASS=password
+    ports:
+      - "5672"
+      - "15672"
+    healthcheck:
+      test: rabbitmq-diagnostics -q ping
+      interval: 5s
+      timeout: 5s
+      retries: 3
+    # volumes:
+    #   - ./enabled_plugins:/etc/rabbitmq/enabled_plugins
+    #   - ./data/rabbitmq.config:/etc/rabbitmq/rabbitmq.config:ro
+
+networks:
+  default:
+    name: local-shared
+    external: true

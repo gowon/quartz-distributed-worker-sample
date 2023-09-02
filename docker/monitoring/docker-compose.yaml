@@ -38,10 +38,10 @@ services:
       - --web.enable-lifecycle
       - --web.enable-remote-write-receiver
     ports:
-      - "9090:9090"
+      - "9090"
     volumes:
-      - ./prometheus/config/prometheus.yaml:/etc/prometheus.yaml:ro
       - /var/run/docker.sock:/var/run/docker.sock
+      - ./prometheus/config/prometheus.yaml:/etc/prometheus.yaml:ro
 
   grafana-jobs:
     image: grafana/grafana-oss:latest

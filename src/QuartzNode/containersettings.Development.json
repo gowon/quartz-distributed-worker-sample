@@ -3,7 +3,10 @@
     "QuartzDbContext": "Host=postgres;Port=5432;Database=quartz;Username=root;Password=password;"
   },
   "Serilog": {
-    "Using": [ "Serilog.Enrichers.Span", "Serilog.Enrichers.Thread", "Serilog.Exceptions", "Serilog.Expressions", "Serilog.Formatting.Compact", "Serilog.Sinks.Console", "Serilog.Sinks.Grafana.Loki" ],
+    "Using": [
+      "Serilog.Enrichers.Span", "Serilog.Enrichers.Thread", "Serilog.Exceptions", "Serilog.Expressions",
+      "Serilog.Formatting.Compact", "Serilog.Sinks.Console", "Serilog.Sinks.Grafana.Loki"
+    ],
     "MinimumLevel": {
       "Default": "Debug",
       "Override": {
@@ -38,6 +41,11 @@
         }
       }
     ],
-    "Enrich": [ "WithExceptionDetails", "WithMachineName", "WithSpan", "WithThreadId" ]
+    "Enrich": ["WithExceptionDetails", "WithMachineName", "WithSpan", "WithThreadId"]
+  },
+  "RabbitMqTransport": {
+    "Host": "rabbitmq",
+    "User": "root",
+    "Pass": "password"
   }
 }

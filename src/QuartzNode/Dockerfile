@@ -7,6 +7,7 @@ EXPOSE 443
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
+COPY ["src/Directory.Build.props", "src/"]
 COPY ["src/QuartzNode/QuartzNode.csproj", "src/QuartzNode/"]
 RUN dotnet restore "src/QuartzNode/QuartzNode.csproj"
 COPY . .

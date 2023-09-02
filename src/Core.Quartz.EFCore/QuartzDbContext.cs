@@ -15,7 +15,10 @@ public class QuartzDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        modelBuilder.AddQuartz(builder => 
+        // add the Postgres Extension for UUID generation
+        modelBuilder.HasPostgresExtension("uuid-ossp");
+
+        modelBuilder.AddQuartz(builder =>
             builder.UsePostgreSql(schema: null));
     }
 }

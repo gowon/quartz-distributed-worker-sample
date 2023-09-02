@@ -34,7 +34,7 @@ scrape_configs:
       insecure_skip_verify: true
     static_configs:
     - targets: ['orchestrator:443']
-  
+
   - job_name: "workers"
     scheme: https
     tls_config:

@@ -12,7 +12,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Core.Quartz.EFCore.Migrations
 {
     [DbContext(typeof(QuartzDbContext))]
-    [Migration("20230826195158_QuartzSchema")]
+    [Migration("20230902024242_QuartzSchema")]
     partial class QuartzSchema
     {
         /// <inheritdoc />
@@ -23,6 +23,7 @@ namespace Core.Quartz.EFCore.Migrations
                 .HasAnnotation("ProductVersion", "7.0.10")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
+            NpgsqlModelBuilderExtensions.HasPostgresExtension(modelBuilder, "uuid-ossp");
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
 
             modelBuilder.Entity("AppAny.Quartz.EntityFrameworkCore.Migrations.QuartzBlobTrigger", b =>

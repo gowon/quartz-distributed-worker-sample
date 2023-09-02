@@ -23,7 +23,8 @@ public sealed class DevDependenciesCommand : Command
         () => new Dictionary<string, string>
         {
             { "postgres-jobs", "postgres" },
-            { "grafana-jobs", "monitoring" }
+            { "grafana-jobs", "monitoring" },
+            { "rabbitmq-jobs", "rabbitmq" }
         },
         "Required docker resources for local development");
 

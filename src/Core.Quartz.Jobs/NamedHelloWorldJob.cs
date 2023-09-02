@@ -32,7 +32,7 @@ public class NamedHelloWorldJob : IJob
 
     public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)
     {
-        configurator.AddJob<NamedHelloWorldJob>(Key,jobConfigurator =>
+        configurator.AddJob<NamedHelloWorldJob>(Key, jobConfigurator =>
         {
             jobConfigurator
                 .WithDescription("A 'Hello World' job with an configurable name.")

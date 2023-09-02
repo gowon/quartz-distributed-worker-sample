@@ -5,9 +5,12 @@ using Core.Quartz.Jobs;
 using Core.Quartz.Jobs.Extensions;
 using CrystalQuartz.AspNetCore;
 using Extensions;
+using Fortify.QuartzNode.Messaging;
 using global::Extensions.Options.AutoBinder;
 using HealthChecks.ApplicationStatus.DependencyInjection;
 using HealthChecks.UI.Client;
+using MassTransit;
+using MassTransit.Logging;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
@@ -64,12 +67,11 @@ public class Program
             .UseSerilog((context, _, config) => config.ReadFrom.Configuration(context.Configuration))
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder
-                    .ConfigureServices((context, services) =>
+                webBuilder.ConfigureServices((builderContext, services) => 
                     {
                         // generate Feature Manager to control injection, this is not a built-in feature
                         // ref: https://github.com/microsoft/FeatureManagement-Dotnet/issues/39
-                        var featureManager = context.Configuration.GenerateFeatureManager();
+                        var featureManager = builderContext.Configuration.GenerateFeatureManager();
 
                         services.AddFeatureManagement();
 
@@ -82,10 +84,12 @@ public class Program
                             healthChecksBuilder.ForwardToPrometheus();
                         }
 
+                        #region Quartz.NET Configuration
+
                         services.AddDbContext<QuartzDbContext>(optionsBuilder =>
                         {
                             optionsBuilder.UseNpgsql(
-                                context.Configuration.GetConnectionString(nameof(QuartzDbContext)));
+                                builderContext.Configuration.GetConnectionString(nameof(QuartzDbContext)));
                         });
 
                         services.AddAsyncInitializer<DbContextInitializer<QuartzDbContext>>();
@@ -117,15 +121,37 @@ public class Program
                             services.AddOptions<OtlpExporterOptions>().AutoBind();
 
                             services.AddOpenTelemetry()
+                                .ConfigureResource(builder => builder
+                                    .AddService(Environment.MachineName)
+                                    .AddTelemetrySdk()
+                                    .AddEnvironmentVariableDetector())
                                 .WithMetrics(builder => builder
                                     .AddRuntimeInstrumentation()
                                     .AddMeter(QuartzNodeMetrics.Default.Name))
                                 .WithTracing(builder => builder
-                                    .SetResourceBuilder(ResourceBuilder.CreateDefault()
-                                        .AddService(Environment.MachineName))
                                     .AddQuartzInstrumentation()
+                                    .AddSource(DiagnosticHeaders.DefaultListenerName)
                                     .AddOtlpExporter());
                         }
+
+                        #endregion Quartz.NET Configuration
+
+                        #region MassTransit
+
+                        services.AddOptions<MassTransitHostOptions>().AutoBind();
+                        services.AddOptions<RabbitMqTransportOptions>().AutoBind();
+
+                        services.AddMassTransit(config =>
+                        {
+                            if (!featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
+                            {
+                                config.AddConsumer<TerminateJobMessageConsumer>();
+                            }
+
+                            config.UsingRabbitMq((context, factory) => { factory.ConfigureEndpoints(context); });
+                        });
+
+                        #endregion MassTransit
 
                         services.AddAuthorization();
                     })
