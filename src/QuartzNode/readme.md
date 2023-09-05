@@ -14,7 +14,7 @@ References:
 
 `IJobs` do not need to be registered in Dependency Injection to be instantiated in Quartz.NET. When jobs are set as "durable", they are stored in the JobStore with the job type full name. The `MicrosoftDependencyInjectionJobFactory` makes use of the `ActivatorUtilities.CreateFactory` method to dynamically generate unregistered jobs by matching dependencies to the type's constructor. This method is used to hydrate Controllers in ASP.NET Core MVC.
 
-This means that if the Job Type has been loaded into the worker's application context (eg. package dependency), then the worker will be able to execute that job. There is no ability to opt-in or opt-out of certain job types during container registration. If you wanted to augment this behavior, then you would need to replace `MicrosoftDependencyInjectionJobFactory` with a custom implementation that removed the use of `ActivatorUtilities.CreateFactory`.
+This means that if the Job Type has been loaded into the worker's application context (eg. package dependency), then the worker will be able to execute that job. There is no ability to opt-in or opt-out of certain job types during container registration. If you wanted to prevent this behavior, then you would need to replace `MicrosoftDependencyInjectionJobFactory` with a custom implementation that removed the use of `ActivatorUtilities.CreateFactory`.
 
 - <https://github.com/quartznet/quartznet/discussions/1303#discussioncomment-1345608>
 - <https://digitteck.com/dotnet/csharp/net-core-serviceprovider-activatorutilities-objectfactory/>
@@ -38,7 +38,7 @@ References:
 - <https://www.mytechramblings.com/posts/getting-started-with-opentelemetry-metrics-and-dotnet-part-2/>
 - <https://learn.microsoft.com/en-us/dotnet/core/diagnostics/metrics-instrumentation>
 
-### Interrupted Jobs in a Clustered Environment
+### Interrupting Jobs in a Clustered Environment
 
 Use an MQ backplane to be able to emit a Terminate/Interrupt command, and have all the nodes subscribe to this channel. The node owning the job will be able to terminate the instance; no side effect for the other jobs. This could also be used for other things like pausing/resuming schedulers. These controls could be managed outside of the application with a Grafana Dashboard to combine the data from the Quartz Database (`qrtz_fired_triggers`), Prometheus (`quartznode_active_job_load`) and widgets to push commands to Rabbit MQ using REST API calls.
 

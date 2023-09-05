@@ -75,6 +75,20 @@ public class Program
 
                         services.AddFeatureManagement();
 
+                        services.Configure<RouteOptions>(options =>
+                        {
+                            options.LowercaseUrls = true;
+                            options.LowercaseQueryStrings = true;
+                        });
+
+                        if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
+                        {
+                            services.AddControllers();
+                            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
+                            services.AddEndpointsApiExplorer();
+                            services.AddSwaggerGen();
+                        }
+                        
                         var healthChecksBuilder = services.AddHealthChecks()
                             .AddApplicationStatus()
                             .AddCheck<QuartzHealthCheck>("quartz");
@@ -158,13 +172,16 @@ public class Program
                     .Configure((context, app) =>
                     {
                         var featureManager = app.ApplicationServices.GetRequiredService<IFeatureManager>();
-
+                        
                         app.UseHttpsRedirection();
 
                         app.UseAuthorization();
 
                         app.UseForFeature(FeatureFlags.OrchestratorMode, builder =>
                         {
+                            builder.UseSwagger();
+                            builder.UseSwaggerUI();
+
                             builder.UseCrystalQuartz(() =>
                                 builder.ApplicationServices.GetRequiredService<ISchedulerFactory>().GetScheduler());
                         });
@@ -200,6 +217,11 @@ public class Program
                             if (featureManager.IsEnabled(FeatureFlags.PrometheusMetrics))
                             {
                                 endpoints.MapMetrics();
+                            }
+
+                            if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
+                            {
+                                endpoints.MapControllers();
                             }
                         });
                     });
