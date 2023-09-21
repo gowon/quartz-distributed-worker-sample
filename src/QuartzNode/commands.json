@@ -9,7 +9,8 @@
     "teardown-dev-dependencies": {
       "fileName": "dotnet.exe",
       "workingDirectory": ".",
-      "arguments": "run --project ../../build/build.csproj -c Release -- dev-dependencies --teardown --working-dir ../.."
+      "arguments":
+        "run --project ../../build/build.csproj -c Release -- dev-dependencies --teardown --working-dir ../.."
     }
   }
 }

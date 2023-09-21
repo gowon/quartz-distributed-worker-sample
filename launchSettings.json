@@ -1,10 +1,27 @@
 {
   "profiles": {
-    "Docker Compose": {
+    "Orchestrator Only": {
       "commandName": "DockerCompose",
       "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "quartznode",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/",
       "serviceActions": {
-        "quartznode": "StartDebugging"
+        "quartznode": "StartDebugging",
+        "worker1": "DoNotStart",
+        "worker2": "DoNotStart"
+      }
+    },
+    "All Instances": {
+      "commandName": "DockerCompose",
+      "commandVersion": "1.0",
+      "composeLaunchAction": "LaunchBrowser",
+      "composeLaunchServiceName": "quartznode",
+      "composeLaunchUrl": "{Scheme}://localhost:{ServicePort}/",
+      "serviceActions": {
+        "quartznode": "StartDebugging",
+        "worker1": "StartDebugging",
+        "worker2": "StartDebugging"
       }
     }
   }

@@ -1,17 +1,17 @@
 namespace QuartzNode;
 
+using System.Reflection;
+using Carter;
 using Core.Quartz.EFCore;
 using Core.Quartz.Jobs;
 using Core.Quartz.Jobs.Extensions;
 using CrystalQuartz.AspNetCore;
 using Extensions;
-using Fortify.QuartzNode.Messaging;
 using global::Extensions.Options.AutoBinder;
 using HealthChecks.ApplicationStatus.DependencyInjection;
-using HealthChecks.UI.Client;
 using MassTransit;
 using MassTransit.Logging;
-using Microsoft.AspNetCore.Diagnostics.HealthChecks;
+using Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
 using OpenTelemetry.Exporter;
@@ -40,10 +40,12 @@ public class Program
             if (await featureManager.IsEnabledAsync(FeatureFlags.OrchestratorMode))
             {
                 Log.ForContext<Program>().Information("Node running in Orchestrator Mode.");
-                await host.InitAsync();
+                await host.InitAndRunAsync();
             }
-
-            await host.RunAsync();
+            else
+            {
+                await host.RunAsync();
+            }
         }
         catch (Exception exception)
         {
@@ -67,7 +69,7 @@ public class Program
             .UseSerilog((context, _, config) => config.ReadFrom.Configuration(context.Configuration))
             .ConfigureWebHostDefaults(webBuilder =>
             {
-                webBuilder.ConfigureServices((builderContext, services) => 
+                webBuilder.ConfigureServices((builderContext, services) =>
                     {
                         // generate Feature Manager to control injection, this is not a built-in feature
                         // ref: https://github.com/microsoft/FeatureManagement-Dotnet/issues/39
@@ -81,14 +83,14 @@ public class Program
                             options.LowercaseQueryStrings = true;
                         });
 
+                        services.AddCarter();
+
                         if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
                         {
-                            services.AddControllers();
-                            // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
                             services.AddEndpointsApiExplorer();
                             services.AddSwaggerGen();
                         }
-                        
+
                         var healthChecksBuilder = services.AddHealthChecks()
                             .AddApplicationStatus()
                             .AddCheck<QuartzHealthCheck>("quartz");
@@ -130,24 +132,6 @@ public class Program
 
                         services.AddQuartzHostedService(options => { options.WaitForJobsToComplete = true; });
 
-                        if (featureManager.IsEnabled(FeatureFlags.OpenTelemetryTracing))
-                        {
-                            services.AddOptions<OtlpExporterOptions>().AutoBind();
-
-                            services.AddOpenTelemetry()
-                                .ConfigureResource(builder => builder
-                                    .AddService(Environment.MachineName)
-                                    .AddTelemetrySdk()
-                                    .AddEnvironmentVariableDetector())
-                                .WithMetrics(builder => builder
-                                    .AddRuntimeInstrumentation()
-                                    .AddMeter(QuartzNodeMetrics.Default.Name))
-                                .WithTracing(builder => builder
-                                    .AddQuartzInstrumentation()
-                                    .AddSource(DiagnosticHeaders.DefaultListenerName)
-                                    .AddOtlpExporter());
-                        }
-
                         #endregion Quartz.NET Configuration
 
                         #region MassTransit
@@ -167,20 +151,43 @@ public class Program
 
                         #endregion MassTransit
 
+                        if (featureManager.IsEnabled(FeatureFlags.OpenTelemetryTracing))
+                        {
+                            services.AddOptions<OtlpExporterOptions>().AutoBind();
+
+                            services.AddOpenTelemetry()
+                                .ConfigureResource(builder => builder
+                                    .AddService(Environment.MachineName)
+                                    .AddTelemetrySdk()
+                                    .AddEnvironmentVariableDetector())
+                                .WithMetrics(builder => builder
+                                    .AddRuntimeInstrumentation()
+                                    .AddMeter(QuartzNodeMetrics.Default.Name))
+                                .WithTracing(builder => builder
+                                    .AddQuartzInstrumentation()
+                                    .AddSource(DiagnosticHeaders.DefaultListenerName)
+                                    .AddOtlpExporter());
+                        }
+
                         services.AddAuthorization();
                     })
-                    .Configure((context, app) =>
+                    .Configure((_, app) =>
                     {
-                        var featureManager = app.ApplicationServices.GetRequiredService<IFeatureManager>();
-                        
                         app.UseHttpsRedirection();
 
                         app.UseAuthorization();
 
                         app.UseForFeature(FeatureFlags.OrchestratorMode, builder =>
                         {
+                            // todo: would be better to register using endpoint builder.
+                            // missing feature, ref: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/pull/2472
                             builder.UseSwagger();
-                            builder.UseSwaggerUI();
+                            builder.UseSwaggerUI(options =>
+                            {
+                                options.IndexStream = () =>
+                                    Assembly.GetExecutingAssembly()
+                                        .GetManifestResourceStream($"{typeof(Program).Namespace}.Swagger.index.html");
+                            });
 
                             builder.UseCrystalQuartz(() =>
                                 builder.ApplicationServices.GetRequiredService<ISchedulerFactory>().GetScheduler());
@@ -190,40 +197,7 @@ public class Program
 
                         app.UseForFeature(FeatureFlags.PrometheusMetrics, builder => builder.UseHttpMetrics());
 
-                        app.UseEndpoints(endpoints =>
-                        {
-                            endpoints.MapGet("/", async http => http.Response.Redirect("/health"));
-
-                            var healthCheckOptions = new HealthCheckOptions
-                            {
-                                Predicate = _ => true
-                            };
-
-                            if (!context.HostingEnvironment.IsProduction())
-                            {
-                                healthCheckOptions.ResponseWriter = UIResponseWriter.WriteHealthCheckUIResponse;
-
-                                endpoints.MapGet("/config", async httpContext =>
-                                {
-                                    var configuration =
-                                        httpContext.RequestServices.GetRequiredService<IConfiguration>() as
-                                            IConfigurationRoot;
-                                    await httpContext.Response.WriteAsync(configuration!.GetDebugView());
-                                });
-                            }
-
-                            endpoints.MapHealthChecks("/health", healthCheckOptions);
-
-                            if (featureManager.IsEnabled(FeatureFlags.PrometheusMetrics))
-                            {
-                                endpoints.MapMetrics();
-                            }
-
-                            if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
-                            {
-                                endpoints.MapControllers();
-                            }
-                        });
+                        app.UseEndpoints(endpoints => endpoints.MapCarter());
                     });
             });
     }

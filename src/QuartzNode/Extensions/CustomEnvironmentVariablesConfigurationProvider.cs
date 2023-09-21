@@ -15,9 +15,9 @@ public class CustomEnvironmentVariablesConfigurationProvider : EnvironmentVariab
     }
 
     public CustomEnvironmentVariablesConfigurationProvider(string? prefix,
-        string? dotReplacment = DefaultDotReplacement) : base(prefix)
+        string? dotReplacement = DefaultDotReplacement) : base(prefix)
     {
-        _dotReplacement = dotReplacment ?? DefaultDotReplacement;
+        _dotReplacement = dotReplacement ?? DefaultDotReplacement;
     }
 
     public override void Load()

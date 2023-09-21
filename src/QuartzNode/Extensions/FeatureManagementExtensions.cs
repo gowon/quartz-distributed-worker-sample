@@ -1,8 +1,5 @@
 ﻿namespace QuartzNode.Extensions;
 
-using System;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.FeatureManagement;
 
 public static class FeatureManagementExtensions

@@ -1,14 +1,14 @@
-﻿namespace Fortify.QuartzNode.Messaging;
+﻿namespace QuartzNode.Messaging;
 
-using global::Quartz;
 using MassTransit;
+using Quartz;
 
 public record TerminateJobMessage(string FireInstanceId);
 
 public class TerminateJobMessageConsumer : IConsumer<TerminateJobMessage>
 {
-    private readonly ISchedulerFactory _schedulerFactory;
     private readonly ILogger<TerminateJobMessageConsumer> _logger;
+    private readonly ISchedulerFactory _schedulerFactory;
 
     public TerminateJobMessageConsumer(ISchedulerFactory schedulerFactory, ILogger<TerminateJobMessageConsumer> logger)
     {

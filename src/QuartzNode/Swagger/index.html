@@ -1,0 +1,142 @@
+﻿<!-- HTML for static distribution bundle build -->
+<!-- REF: https://github.com/domaindrivendev/Swashbuckle.AspNetCore/blob/master/src/Swashbuckle.AspNetCore.SwaggerUI/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>%(DocumentTitle)</title>
+    <link rel="stylesheet" type="text/css" href="./swagger-ui.css">
+    <link rel="icon" type="image/png" href="./favicon-32x32.png" sizes="32x32"/>
+    <link rel="icon" type="image/png" href="./favicon-16x16.png" sizes="16x16"/>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" integrity="sha256-fx038NkLY4U1TCrBDiu5FWPEa9eiZu01EiLryshJbCo=" crossorigin="anonymous">
+    <style>
+
+        html {
+            box-sizing: border-box;
+            overflow: -moz-scrollbars-vertical;
+            overflow-y: scroll;
+        }
+
+        *,
+        *:before,
+        *:after { box-sizing: inherit; }
+
+        body {
+            background: #fafafa;
+            margin: 0;
+            /* fixed-navbar */
+            padding-top: 4rem;
+        }
+    </style>
+    %(HeadContent)
+</head>
+
+<body>
+<!-- Fixed navbar -->
+<nav class="navbar navbar-expand-sm fixed-top bg-light border-bottom">
+    <div class="container-fluid">
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav me-auto mb-2 mb-md-0">
+                <li class="nav-item">
+                    <a class="nav-link" href="/health" target="_blank" role="button">Healthcheck</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/metrics" target="_blank" role="button">Metrics</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/quartz" target="_blank" role="button">Quartz UI</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+<div id="swagger-ui"></div>
+
+<!-- Workaround for https://github.com/swagger-api/swagger-editor/issues/1371 -->
+<script>
+    if (window.navigator.userAgent.indexOf("Edge") > -1) {
+        console.log("Removing native Edge fetch in favor of swagger-ui's polyfill");
+        window.fetch = undefined;
+    }
+</script>
+
+<script src="./swagger-ui-bundle.js"></script>
+<script src="./swagger-ui-standalone-preset.js"></script>
+<script>
+    /* Source: https://gist.github.com/lamberta/3768814
+         * Parse a string function definition and return a function object. Does not use eval.
+         * @param {string} str
+         * @return {function}
+         *
+         * Example:
+         *  var f = function (x, y) { return x * y; };
+         *  var g = parseFunction(f.toString());
+         *  g(33, 3); //=> 99
+         */
+    function parseFunction(str) {
+        if (!str) return void (0);
+
+        const fn_body_idx = str.indexOf('{');
+        const fn_body = str.substring(fn_body_idx + 1, str.lastIndexOf('}'));
+        const fn_declare = str.substring(0, fn_body_idx);
+        const fn_params = fn_declare.substring(fn_declare.indexOf('(') + 1, fn_declare.lastIndexOf(')'));
+        var args = fn_params.split(',');
+
+        args.push(fn_body);
+
+        function Fn() {
+            return Function.apply(this, args);
+        }
+
+        Fn.prototype = Function.prototype;
+
+        return new Fn();
+    }
+
+    window.onload = function() {
+        const configObject = JSON.parse('%(ConfigObject)');
+        const oauthConfigObject = JSON.parse('%(OAuthConfigObject)');
+
+        // Workaround for https://github.com/swagger-api/swagger-ui/issues/5945
+        configObject.urls.forEach(function(item) {
+            if (item.url.startsWith("http") || item.url.startsWith("/")) return;
+            item.url = window.location.href.replace("index.html", item.url).split('#')[0];
+        });
+
+        // If validatorUrl is not explicitly provided, disable the feature by setting to null
+        if (!configObject.hasOwnProperty("validatorUrl"))
+            configObject.validatorUrl = null;
+
+        // If oauth2RedirectUrl isn't specified, use the built-in default
+        if (!configObject.hasOwnProperty("oauth2RedirectUrl"))
+            configObject.oauth2RedirectUrl = (new URL("oauth2-redirect.html", window.location.href)).href;
+
+        // Apply mandatory parameters
+        configObject.dom_id = "#swagger-ui";
+        configObject.presets = [SwaggerUIBundle.presets.apis, SwaggerUIStandalonePreset];
+        configObject.layout = "StandaloneLayout";
+
+        // Parse and add interceptor functions
+        const interceptors = JSON.parse('%(Interceptors)');
+        if (interceptors.RequestInterceptorFunction)
+            configObject.requestInterceptor = parseFunction(interceptors.RequestInterceptorFunction);
+        if (interceptors.ResponseInterceptorFunction)
+            configObject.responseInterceptor = parseFunction(interceptors.ResponseInterceptorFunction);
+
+        // Begin Swagger UI call region
+
+        const ui = SwaggerUIBundle(configObject);
+
+        ui.initOAuth(oauthConfigObject);
+
+        // End Swagger UI call region
+
+        window.ui = ui;
+    };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js" integrity="sha256-qlPVgvl+tZTCpcxYJFdHB/m6mDe84wRr+l81VoYPTgQ=" crossorigin="anonymous"></script>
+</body>
+</html>

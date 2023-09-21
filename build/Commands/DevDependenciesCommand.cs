@@ -20,13 +20,11 @@ public sealed class DevDependenciesCommand : Command
 
     // ref https://github.com/dotnet/command-line-api/issues/840#issuecomment-609517717
     public readonly Option<Dictionary<string, string>> ServicesOption = new(new[] { "--services", "-s" },
-        () => new Dictionary<string, string>
-        {
-            { "postgres-jobs", "postgres" },
-            { "grafana-jobs", "monitoring" },
-            { "rabbitmq-jobs", "rabbitmq" }
-        },
-        "Required docker resources for local development");
+        result => result
+            .Tokens
+            .Select(token => token.Value.Split('='))
+            .ToDictionary(p => p[0], p => p[1]),
+        description: "Required docker resources for local development");
 
     public readonly Option<bool> TeardownOption = new(new[] { "--teardown", "-t" },
         "Teardown resources");
@@ -36,6 +34,14 @@ public sealed class DevDependenciesCommand : Command
         AddOption(InitializeProfileOption);
         AddOption(TeardownOption);
         AddOption(NetworksOption);
+
+        ServicesOption.SetDefaultValue(new Dictionary<string, string>
+        {
+            { "postgres-jobs", "postgres" },
+            { "grafana-jobs", "monitoring" },
+            { "rabbitmq-jobs", "rabbitmq" }
+        });
+
         AddOption(ServicesOption);
 
         this.SetHandler(async context =>

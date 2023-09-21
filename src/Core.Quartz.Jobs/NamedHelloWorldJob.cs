@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging;
 public class NamedHelloWorldJob : IJob
 {
     public static readonly JobKey Key = new("named-hello-world", "samples");
+    public static readonly string NameParameter = "name";
 
     private readonly ILogger<NamedHelloWorldJob> _logger;
 
@@ -36,7 +37,7 @@ public class NamedHelloWorldJob : IJob
         {
             jobConfigurator
                 .WithDescription("A 'Hello World' job with an configurable name.")
-                .UsingJobData("name", string.Empty)
+                .UsingJobData(NameParameter, string.Empty)
                 .StoreDurably();
         });
     }

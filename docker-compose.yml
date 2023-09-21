@@ -14,19 +14,41 @@ services:
       retries: 3
       timeout: 5s
 
-  worker:
+  worker1:
     build:
       context: .
       dockerfile: src/QuartzNode/Dockerfile
+    container_name: worker1
     labels:
       - "com.quartznode.role=worker"
-    deploy:
-      replicas: 1
-    healthcheck:
-      test: wget --no-verbose --tries=1 --spider --no-check-certificate http://localhost/health || exit 1
-      interval: 5s
-      retries: 3
-      timeout: 5s
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    ports:
+      - "80"
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
+    depends_on:
+      - quartznode
+
+  worker2:
+    build:
+      context: .
+      dockerfile: src/QuartzNode/Dockerfile
+    container_name: worker2
+    labels:
+      - "com.quartznode.role=worker"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=https://+:443;http://+:80
+    ports:
+      - "80"
+      - "443"
+    volumes:
+      - ${APPDATA}/Microsoft/UserSecrets:/root/.microsoft/usersecrets:ro
+      - ${APPDATA}/ASP.NET/Https:/root/.aspnet/https:ro
     depends_on:
       - quartznode
 
