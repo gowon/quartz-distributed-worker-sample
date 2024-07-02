@@ -1,7 +1,8 @@
 ﻿namespace QuartzNode.Messaging;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using MassTransit;
-using Quartz;
 
 public record TerminateJobMessage(string FireInstanceId);
 

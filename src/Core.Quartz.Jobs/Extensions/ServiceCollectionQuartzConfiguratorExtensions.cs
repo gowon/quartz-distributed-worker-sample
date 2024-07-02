@@ -1,7 +1,9 @@
 ﻿namespace Core.Quartz.Jobs.Extensions;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using System.Reflection;
-using global::Quartz;
+
 
 public static class ServiceCollectionQuartzConfiguratorExtensions
 {

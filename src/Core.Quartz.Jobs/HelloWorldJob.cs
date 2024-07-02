@@ -1,7 +1,8 @@
 ﻿namespace Core.Quartz.Jobs;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using Extensions;
-using global::Quartz;
 using Microsoft.Extensions.Logging;
 
 [QuartzJobProvider(nameof(RegisterJob))]
@@ -16,10 +17,10 @@ public class HelloWorldJob : IJob
         _logger = logger;
     }
 
-    public Task Execute(IJobExecutionContext context)
+    public ValueTask Execute(IJobExecutionContext context)
     {
         _logger.LogInformation("Hello world!");
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
     public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)

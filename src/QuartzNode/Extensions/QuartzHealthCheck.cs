@@ -1,7 +1,8 @@
 ﻿namespace QuartzNode.Extensions;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Quartz;
 
 // this is internal to the Quartz library for some reason
 // ref: https://github.com/quartznet/quartznet/blob/main/src/Quartz.AspNetCore/AspNetCore/HealthChecks/QuartzHealthCheck.cs

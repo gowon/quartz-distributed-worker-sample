@@ -6,6 +6,7 @@ using HealthChecks.UI.Client;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.FeatureManagement;
 using Prometheus;
+using Quartz.AspNetCore;
 
 public class CoreModule : ICarterModule
 {
@@ -47,5 +48,7 @@ public class CoreModule : ICarterModule
         {
             app.MapMetrics();
         }
+
+        app.MapQuartzApi();
     }
 }

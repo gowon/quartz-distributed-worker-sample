@@ -1,7 +1,8 @@
 ﻿namespace Core.Quartz.Jobs;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using Extensions;
-using global::Quartz;
 using Microsoft.Extensions.Logging;
 
 [QuartzJobProvider(nameof(RegisterJob))]
@@ -17,7 +18,7 @@ public class NamedHelloWorldJob : IJob
         _logger = logger;
     }
 
-    public Task Execute(IJobExecutionContext context)
+    public ValueTask Execute(IJobExecutionContext context)
     {
         if (context.MergedJobDataMap.TryGetValue("name", out var name) && !string.IsNullOrWhiteSpace(name.ToString()))
         {
@@ -28,7 +29,7 @@ public class NamedHelloWorldJob : IJob
             _logger.LogInformation("Hello there, you didn't provide a name!");
         }
 
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
     public static void RegisterJob(IServiceCollectionQuartzConfigurator configurator)

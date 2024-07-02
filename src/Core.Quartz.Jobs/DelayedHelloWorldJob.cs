@@ -1,8 +1,9 @@
 ﻿namespace Core.Quartz.Jobs;
 
+extern alias QuartzPreRelease;
+using QuartzPreRelease::Quartz;
 using System.Security.Cryptography;
 using Extensions;
-using global::Quartz;
 using Microsoft.Extensions.Logging;
 
 [QuartzJobProvider(nameof(RegisterJob))]
@@ -18,9 +19,9 @@ public class DelayedHelloWorldJob : IJob
         _logger = logger;
     }
 
-    public async Task Execute(IJobExecutionContext context)
+    public async ValueTask Execute(IJobExecutionContext context)
     {
-        if (!context.MergedJobDataMap.TryGetIntValue(MaxDelayMsParameter, out var maxDelay) || maxDelay == default)
+        if (!context.MergedJobDataMap.TryGetInt(MaxDelayMsParameter, out var maxDelay) || maxDelay == default)
         {
             maxDelay = 1000;
         }

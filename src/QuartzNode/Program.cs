@@ -1,5 +1,6 @@
 namespace QuartzNode;
 
+extern alias QuartzPreRelease;
 using System.Reflection;
 using Carter;
 using Core.Quartz.EFCore;
@@ -14,13 +15,13 @@ using MassTransit.Logging;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
-using Modules;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
 using OpenTelemetry.Trace;
 using Prometheus;
-using Quartz;
+using Quartz.AspNetCore;
+using QuartzPreRelease::Quartz;
 using Serilog;
 using Serilog.Exceptions;
 
@@ -130,6 +131,8 @@ public class Program
                                 config.UseDefaultThreadPool(0);
                                 config.RegisterJobsFromAssemblyContaining<HelloWorldJob>();
                             }
+
+                            config.AddHttpApi();
                         });
 
                         services.AddQuartzHostedService(options => { options.WaitForJobsToComplete = true; });

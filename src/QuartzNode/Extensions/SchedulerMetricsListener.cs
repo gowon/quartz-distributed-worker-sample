@@ -1,7 +1,8 @@
 ﻿namespace QuartzNode.Extensions;
 
+extern alias QuartzPreRelease;
 using System.Diagnostics.Metrics;
-using Quartz;
+using QuartzPreRelease::Quartz;
 
 public class SchedulerMetricsListener : ISchedulerListener
 {
@@ -15,88 +16,88 @@ public class SchedulerMetricsListener : ISchedulerListener
         _schedulerFactory = schedulerFactory;
     }
 
-    public Task JobScheduled(ITrigger trigger, CancellationToken cancellationToken = new())
+    public ValueTask JobScheduled(ITrigger trigger, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobUnscheduled(TriggerKey triggerKey, CancellationToken cancellationToken = new())
+    public ValueTask JobUnscheduled(TriggerKey triggerKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task TriggerFinalized(ITrigger trigger, CancellationToken cancellationToken = new())
+    public ValueTask TriggerFinalized(ITrigger trigger, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task TriggerPaused(TriggerKey triggerKey, CancellationToken cancellationToken = new())
+    public ValueTask TriggerPaused(TriggerKey triggerKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task TriggersPaused(string? triggerGroup, CancellationToken cancellationToken = new())
+    public ValueTask TriggersPaused(string? triggerGroup, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task TriggerResumed(TriggerKey triggerKey, CancellationToken cancellationToken = new())
+    public ValueTask TriggerResumed(TriggerKey triggerKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task TriggersResumed(string? triggerGroup, CancellationToken cancellationToken = new())
+    public ValueTask TriggersResumed(string? triggerGroup, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobAdded(IJobDetail jobDetail, CancellationToken cancellationToken = new())
+    public ValueTask JobAdded(IJobDetail jobDetail, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobDeleted(JobKey jobKey, CancellationToken cancellationToken = new())
+    public ValueTask JobDeleted(JobKey jobKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobPaused(JobKey jobKey, CancellationToken cancellationToken = new())
+    public ValueTask JobPaused(JobKey jobKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobInterrupted(JobKey jobKey, CancellationToken cancellationToken = new())
+    public ValueTask JobInterrupted(JobKey jobKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobsPaused(string jobGroup, CancellationToken cancellationToken = new())
+    public ValueTask JobsPaused(string jobGroup, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobResumed(JobKey jobKey, CancellationToken cancellationToken = new())
+    public ValueTask JobResumed(JobKey jobKey, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task JobsResumed(string jobGroup, CancellationToken cancellationToken = new())
+    public ValueTask JobsResumed(string jobGroup, CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task SchedulerError(string msg, SchedulerException cause,
+    public ValueTask SchedulerError(string msg, SchedulerException cause,
         CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task SchedulerInStandbyMode(CancellationToken cancellationToken = new())
+    public ValueTask SchedulerInStandbyMode(CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public async Task SchedulerStarted(CancellationToken cancellationToken = new())
+    public async ValueTask SchedulerStarted(CancellationToken cancellationToken = new())
     {
         _scheduler ??= await _schedulerFactory.GetScheduler(cancellationToken);
         _threadPoolSize = (await _scheduler.GetMetaData(cancellationToken)).ThreadPoolSize;
@@ -111,23 +112,23 @@ public class SchedulerMetricsListener : ISchedulerListener
         }
     }
 
-    public Task SchedulerStarting(CancellationToken cancellationToken = new())
+    public ValueTask SchedulerStarting(CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task SchedulerShutdown(CancellationToken cancellationToken = new())
+    public ValueTask SchedulerShutdown(CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task SchedulerShuttingdown(CancellationToken cancellationToken = new())
+    public ValueTask SchedulerShuttingdown(CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 
-    public Task SchedulingDataCleared(CancellationToken cancellationToken = new())
+    public ValueTask SchedulingDataCleared(CancellationToken cancellationToken = new())
     {
-        return Task.CompletedTask;
+        return new ValueTask(Task.CompletedTask);
     }
 }

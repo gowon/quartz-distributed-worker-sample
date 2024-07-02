@@ -1,5 +1,6 @@
 ﻿namespace QuartzNode.Modules;
 
+extern alias QuartzPreRelease;
 using AppAny.Quartz.EntityFrameworkCore.Migrations;
 using Carter;
 using Core.Quartz.EFCore;
@@ -7,7 +8,7 @@ using Extensions;
 using MassTransit;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
-using Quartz.Impl.AdoJobStore;
+using QuartzPreRelease::Quartz.Impl.AdoJobStore;
 
 public class OrchestratorModule : ICarterModule
 {
