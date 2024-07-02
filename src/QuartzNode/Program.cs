@@ -14,6 +14,7 @@ using MassTransit.Logging;
 using Messaging;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.FeatureManagement;
+using Modules;
 using OpenTelemetry.Exporter;
 using OpenTelemetry.Metrics;
 using OpenTelemetry.Resources;
@@ -73,7 +74,8 @@ public class Program
                     {
                         // generate Feature Manager to control injection, this is not a built-in feature
                         // ref: https://github.com/microsoft/FeatureManagement-Dotnet/issues/39
-                        var featureManager = builderContext.Configuration.GenerateFeatureManager();
+                        builderContext.EnableFeatureManagementDependencyInjection();
+                        var featureManager = builderContext.GetFeatureManager();
 
                         services.AddFeatureManagement();
 
@@ -85,11 +87,11 @@ public class Program
 
                         services.AddCarter();
 
-                        if (featureManager.IsEnabled(FeatureFlags.OrchestratorMode))
+                        services.AddForFeature(FeatureFlags.OrchestratorMode, s =>
                         {
-                            services.AddEndpointsApiExplorer();
-                            services.AddSwaggerGen();
-                        }
+                            s.AddEndpointsApiExplorer();
+                            s.AddSwaggerGen();
+                        });
 
                         var healthChecksBuilder = services.AddHealthChecks()
                             .AddApplicationStatus()

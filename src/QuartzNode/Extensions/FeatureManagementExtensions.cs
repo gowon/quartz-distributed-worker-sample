@@ -4,26 +4,55 @@ using Microsoft.FeatureManagement;
 
 public static class FeatureManagementExtensions
 {
-    /// <summary>
-    ///     Generates a feature manager.
-    /// </summary>
-    /// <param name="configuration">
-    ///     A specific <see cref="T:Microsoft.Extensions.Configuration.IConfiguration" /> instance that
-    ///     will be used to obtain feature settings.
-    /// </param>
-    /// <param name="configure">The action used to configure the feature settings.</param>
-    /// <returns>
-    ///     A <see cref="T:Microsoft.FeatureManagement.IFeatureManager" /> that can be used to check which features are
-    ///     enabled.
-    /// </returns>
-    public static IFeatureManager GenerateFeatureManager(this IConfiguration configuration,
-        Action<IFeatureManagementBuilder> configure = null)
-    {
-        var builder = new ServiceCollection().AddFeatureManagement(configuration);
-        configure?.Invoke(builder);
+    private static Lazy<IFeatureManager> _lazyFeatureManager = new(() => throw new InvalidOperationException(
+        $"Please initialize Feature Manager using '{nameof(EnableFeatureManagementDependencyInjection)}()' on the host builder context first before using Feature-based injection."));
 
-        return builder.Services.BuildServiceProvider()
-            .GetRequiredService<IFeatureManager>();
+    public static void EnableFeatureManagementDependencyInjection(this WebHostBuilderContext context,
+        Action<IFeatureManagementBuilder>? configure = null)
+    {
+        _lazyFeatureManager = new Lazy<IFeatureManager>(() =>
+        {
+            var builder = new ServiceCollection().AddFeatureManagement(context.Configuration);
+            configure?.Invoke(builder);
+            return builder.Services.BuildServiceProvider().GetRequiredService<IFeatureManager>();
+        });
+    }
+
+    public static IFeatureManager GetFeatureManager(this WebHostBuilderContext context)
+    {
+        context.EnableFeatureManagementDependencyInjection();
+        return _lazyFeatureManager.Value;
+    }
+
+    public static IServiceCollection AddForFeature(this IServiceCollection services, string feature,
+        Action<IServiceCollection>? enabledAction = null, Action<IServiceCollection>? disabledAction = null)
+    {
+        if (_lazyFeatureManager.Value.IsEnabled(feature))
+        {
+            enabledAction?.Invoke(services);
+        }
+        else
+        {
+            disabledAction?.Invoke(services);
+        }
+
+        return services;
+    }
+
+    public static IServiceCollection AddForFeature<TContext>(this IServiceCollection services, string feature,
+        TContext context, Action<IServiceCollection>? enabledAction = null,
+        Action<IServiceCollection>? disabledAction = null)
+    {
+        if (_lazyFeatureManager.Value.IsEnabled(feature, context))
+        {
+            enabledAction?.Invoke(services);
+        }
+        else
+        {
+            disabledAction?.Invoke(services);
+        }
+
+        return services;
     }
 
     /// <summary>Checks whether a given feature is enabled.</summary>
